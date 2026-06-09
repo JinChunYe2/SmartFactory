@@ -87,6 +87,7 @@ import {
 } from './data';
 
 import { OperationsLeftPanel, OperationsRightPanel } from './components/OperationsPanels';
+import { OperationsStaffDrawer } from './components/OperationsStaffDrawer';
 import { SecurityLeftPanel, SecurityRightPanel } from './components/SecurityPanels';
 import { ProductionLeftPanel, ProductionRightPanel } from './components/ProductionPanels';
 import { EnergyLeftPanel, EnergyRightPanel } from './components/EnergyPanels';
@@ -138,6 +139,7 @@ export default function App() {
   const [selectedSecurityAlertId, setSelectedSecurityAlertId] = useState<string | null>(null);
   const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
   const [selectedOperationsStaffId, setSelectedOperationsStaffId] = useState<string | null>('ops-staff-01');
+  const [isStaffDrawerOpen, setIsStaffDrawerOpen] = useState<boolean>(false);
   const [showEmergencyGuide, setShowEmergencyGuide] = useState<boolean>(false);
   const [isVideoWallFullscreen, setIsVideoWallFullscreen] = useState<boolean>(false);
   const [selectedProductionOrderId, setSelectedProductionOrderId] = useState<string>('SO-260609-18');
@@ -1245,12 +1247,9 @@ export default function App() {
             <OperationsLeftPanel
               theme={theme}
               devices={devices}
-              staff={INITIAL_OPERATION_STAFF}
               alerts={alerts}
               selectedDeviceId={selectedDeviceId}
-              selectedStaffId={selectedOperationsStaffId}
               onSelectDevice={handleDeviceSelect}
-              onSelectStaff={handleOperationsStaffSelect}
               onSelectAlert={(_id, deviceCode) => {
                 if (deviceCode) handleDeviceSelect(deviceCode);
                 setIsAlertDrawerOpen(true);
@@ -1488,6 +1487,18 @@ export default function App() {
         </nav>
 
         {/* FLOATING CHAT INTELLIGENT BOT ASSISTANT */}
+        {activeSlice === 'operations' && (
+          <OperationsStaffDrawer
+            theme={theme}
+            sidePanelsOpen={sidePanelsOpen}
+            staff={INITIAL_OPERATION_STAFF}
+            selectedStaffId={selectedOperationsStaffId}
+            isOpen={isStaffDrawerOpen}
+            onToggleOpen={() => setIsStaffDrawerOpen(prev => !prev)}
+            onSelectStaff={handleOperationsStaffSelect}
+          />
+        )}
+
         {!isChatOpen ? (
           <AssistantLauncher
             theme={theme}

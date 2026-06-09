@@ -9,11 +9,9 @@ import {
   AlertTriangle,
   FileText,
   History,
-  MapPin,
   Plus,
   Search,
   Sliders,
-  Users,
   Wrench,
 } from 'lucide-react';
 import {
@@ -21,7 +19,6 @@ import {
   Device,
   MaintenanceRecord,
   MoldChangeRecord,
-  OperationStaff,
   WorkOrder,
 } from '../types';
 import {
@@ -41,24 +38,18 @@ type Theme = 'cyberpunk' | 'minimalist';
 interface OperationsLeftPanelProps {
   theme: Theme;
   devices: Device[];
-  staff: OperationStaff[];
   alerts: AlertLog[];
   selectedDeviceId: string;
-  selectedStaffId: string | null;
   onSelectDevice: (code: string) => void;
-  onSelectStaff: (staffId: string) => void;
   onSelectAlert: (alertId: string, deviceCode?: string) => void;
 }
 
 export function OperationsLeftPanel({
   theme,
   devices,
-  staff,
   alerts,
   selectedDeviceId,
-  selectedStaffId,
   onSelectDevice,
-  onSelectStaff,
   onSelectAlert,
 }: OperationsLeftPanelProps) {
   const [processFilter, setProcessFilter] = useState<'all' | Device['process']>('all');
@@ -70,13 +61,6 @@ export function OperationsLeftPanel({
   const inner = panelInner(theme);
   const title = panelTitle(theme);
   const muted = panelMuted(theme);
-
-  const getStaffStatusClass = (status: OperationStaff['status']) => {
-    if (status === '抢修中') return 'text-red-500';
-    if (status === '巡检中') return 'text-amber-500';
-    if (status === '在线') return 'text-emerald-500';
-    return theme === 'minimalist' ? 'text-slate-400' : 'text-slate-500';
-  };
 
   const filteredDevices = devices.filter(d => {
     if (processFilter !== 'all' && d.process !== processFilter) return false;
@@ -140,51 +124,6 @@ export function OperationsLeftPanel({
             {overview.moldHighWear.map(d => `${d.code}(${d.moldWear}%)`).join(' · ')}
           </div>
         )}
-      </section>
-
-      {/* P0 运维人员管理 */}
-      <section className={`p-3 rounded-2xl border ${card}`}>
-        <h3 className={`text-xs font-bold mb-2 flex items-center gap-1.5 ${title}`}>
-          <Users className="h-4 w-4 text-indigo-500" />
-          人员管理
-        </h3>
-        <div className={`grid grid-cols-[0.8fr_0.7fr_0.6fr_1.4fr] gap-1 px-2 pb-1 text-[8px] font-bold ${muted}`}>
-          <span>姓名</span>
-          <span>状态</span>
-          <span>工龄</span>
-          <span>实时位置</span>
-        </div>
-        <div className="flex flex-col gap-1 max-h-[150px] overflow-y-auto scrollbar-thin pr-0.5">
-          {staff.map(person => (
-            <button
-              key={person.id}
-              type="button"
-              onClick={() => onSelectStaff(person.id)}
-              className={`text-left p-2 rounded-xl border transition text-[10px] ${
-                selectedStaffId === person.id
-                  ? theme === 'minimalist' ? 'bg-indigo-50 border-indigo-400 shadow-sm' : 'bg-indigo-950/40 border-indigo-500/50'
-                  : inner
-              }`}
-            >
-              <div className="grid grid-cols-[0.8fr_0.7fr_0.6fr_1.4fr] gap-1 items-center">
-                <span className={`font-bold truncate ${theme === 'minimalist' ? 'text-slate-800' : 'text-white'}`}>{person.name}</span>
-                <span className={`font-bold ${getStaffStatusClass(person.status)}`}>{person.status}</span>
-                <span className={muted}>{person.workYears}年</span>
-                <span className={`${muted} truncate flex items-center gap-0.5`}>
-                  <MapPin className="h-3 w-3 shrink-0" />
-                  {person.currentLocation}
-                </span>
-              </div>
-              <div className={`mt-1 flex justify-between text-[8px] ${muted}`}>
-                <span>{person.role} · {person.shift}</span>
-                <span>{person.phone}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-        <div className={`mt-2 text-[9px] ${muted}`}>
-          点击人员行，3D 自动导航到当前人员位置。
-        </div>
       </section>
 
       {/* P0 设备台账 */}
