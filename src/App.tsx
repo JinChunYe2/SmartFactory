@@ -67,6 +67,7 @@ import {
   INITIAL_FIRE_EQUIPMENT,
   INITIAL_DOOR_LOGS,
   INITIAL_FENCES,
+  INITIAL_OPERATION_STAFF,
   INITIAL_PRODUCTION_ORDERS,
   INITIAL_MAINTENANCE_RECORDS,
   INITIAL_MOLD_RECORDS,
@@ -136,6 +137,7 @@ export default function App() {
   const [selectedCameraId, setSelectedCameraId] = useState<string | null>(null);
   const [selectedSecurityAlertId, setSelectedSecurityAlertId] = useState<string | null>(null);
   const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
+  const [selectedOperationsStaffId, setSelectedOperationsStaffId] = useState<string | null>('ops-staff-01');
   const [showEmergencyGuide, setShowEmergencyGuide] = useState<boolean>(false);
   const [isVideoWallFullscreen, setIsVideoWallFullscreen] = useState<boolean>(false);
   const [selectedProductionOrderId, setSelectedProductionOrderId] = useState<string>('SO-260609-18');
@@ -259,6 +261,10 @@ export default function App() {
 
   const activeDevice = devices.find(d => d.code === selectedDeviceId) || devices[0];
   const focusDevice = activeSlice === 'operations' ? activeDevice : null;
+  const selectedOperationsStaff = INITIAL_OPERATION_STAFF.find(p => p.id === selectedOperationsStaffId) ?? null;
+  const operationsFocus3d = activeSlice === 'operations'
+    ? selectedOperationsStaff?.focus3d ?? focusDevice?.focus3d
+    : undefined;
 
   const securityFocus3d = (() => {
     if (activeSlice !== 'security') return undefined;
@@ -296,8 +302,8 @@ export default function App() {
     return undefined;
   })();
 
-  const sceneTransform = activeSlice === 'operations' && focusDevice
-    ? `perspective(1400px) rotateX(42deg) rotateZ(-12deg) scale(${focusDevice.focus3d.scale * 0.9}) translate(${focusDevice.focus3d.offsetX}px, ${focusDevice.focus3d.offsetY}px)`
+  const sceneTransform = activeSlice === 'operations' && operationsFocus3d
+    ? `perspective(1400px) rotateX(42deg) rotateZ(-12deg) scale(${operationsFocus3d.scale * 0.9}) translate(${operationsFocus3d.offsetX}px, ${operationsFocus3d.offsetY}px)`
     : activeSlice === 'security'
       ? build3dTransform(securityFocus3d)
       : activeSlice === 'production'
@@ -403,11 +409,22 @@ export default function App() {
   };
 
   const handleDeviceSelect = (code: string) => {
+    setSelectedOperationsStaffId(null);
     setSelectedDeviceId(code);
     setFocusAnimationPing(code);
     setTimeout(() => {
       setFocusAnimationPing(null);
     }, 2000);
+  };
+
+  const handleOperationsStaffSelect = (staffId: string) => {
+    const person = INITIAL_OPERATION_STAFF.find(p => p.id === staffId);
+    setSelectedOperationsStaffId(staffId);
+    if (person?.linkedDeviceCode) {
+      setSelectedDeviceId(person.linkedDeviceCode);
+    }
+    setFocusAnimationPing(staffId);
+    setTimeout(() => setFocusAnimationPing(null), 2000);
   };
 
   const handleCreateWorkOrder = async (e: React.FormEvent) => {
@@ -1050,6 +1067,56 @@ export default function App() {
                 </>
               )}
 
+              {activeSlice === 'operations' && INITIAL_OPERATION_STAFF.map(person => {
+                const selected = selectedOperationsStaffId === person.id;
+                const statusClass = person.status === '抢修中'
+                  ? 'bg-red-500 border-red-300'
+                  : person.status === '巡检中'
+                    ? 'bg-amber-500 border-amber-300'
+                    : person.status === '在线'
+                      ? 'bg-emerald-500 border-emerald-300'
+                      : 'bg-slate-400 border-slate-300';
+                return (
+                  <button
+                    key={person.id}
+                    type="button"
+                    onClick={() => handleOperationsStaffSelect(person.id)}
+                    className={`absolute z-30 flex flex-col items-center gap-1 transition duration-300 cursor-pointer ${
+                      selected ? 'scale-110' : 'hover:scale-105'
+                    }`}
+                    style={{
+                      left: person.pos3d.left,
+                      top: person.pos3d.top,
+                      transform: `translateZ(${person.pos3d.z ?? 24}px)`,
+                    }}
+                    title={`${person.name} · ${person.currentLocation}`}
+                  >
+                    <span className={`relative flex h-8 w-8 items-center justify-center rounded-full border-2 text-white shadow-lg ${statusClass} ${
+                      selected || focusAnimationPing === person.id ? 'animate-pulse ring-4 ring-indigo-400/35' : ''
+                    }`}>
+                      <User className="h-4 w-4" />
+                      <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-white border border-slate-200" />
+                    </span>
+                    <span className={`whitespace-nowrap rounded-lg border px-2 py-0.5 text-[8px] font-bold shadow-sm ${
+                      theme === 'minimalist'
+                        ? selected ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-white/95 border-slate-200 text-slate-700'
+                        : selected ? 'bg-indigo-950/90 border-indigo-500/50 text-indigo-200' : 'bg-slate-900/90 border-slate-700 text-slate-300'
+                    }`}>
+                      {person.name} · {person.status}
+                    </span>
+                    {selected && (
+                      <span className={`w-44 rounded-xl border px-2 py-1 text-[8px] leading-snug shadow-lg ${
+                        theme === 'minimalist' ? 'bg-white/95 border-indigo-200 text-slate-700' : 'bg-slate-950/90 border-indigo-500/40 text-slate-200'
+                      }`}>
+                        <b>已导航到人员位置</b><br />
+                        {person.role} · 工龄 {person.workYears} 年<br />
+                        {person.currentLocation}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+
               {/* 3D Twin device nodes — status coloring & hover telemetry */}
               {devices.map(dev => (
                 <TwinDeviceNode
@@ -1178,9 +1245,12 @@ export default function App() {
             <OperationsLeftPanel
               theme={theme}
               devices={devices}
+              staff={INITIAL_OPERATION_STAFF}
               alerts={alerts}
               selectedDeviceId={selectedDeviceId}
+              selectedStaffId={selectedOperationsStaffId}
               onSelectDevice={handleDeviceSelect}
+              onSelectStaff={handleOperationsStaffSelect}
               onSelectAlert={(_id, deviceCode) => {
                 if (deviceCode) handleDeviceSelect(deviceCode);
                 setIsAlertDrawerOpen(true);

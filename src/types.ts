@@ -42,6 +42,20 @@ export interface Device {
   focus3d: { offsetX: number; offsetY: number; scale: number };
 }
 
+export interface OperationStaff {
+  id: string;
+  name: string;
+  role: string;
+  status: '在线' | '巡检中' | '抢修中' | '离线';
+  workYears: number;
+  currentLocation: string;
+  shift: '白班' | '夜班';
+  phone: string;
+  linkedDeviceCode?: string;
+  pos3d: Pos3d;
+  focus3d: { offsetX: number; offsetY: number; scale: number };
+}
+
 export interface WorkOrder {
   id: string;
   deviceCode: string;
