@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/** 飞书 fe-connect 推送配置（可通过 .env 覆盖） */
+/** 飞书 fe-connect 推送配置（可通过 .env 或 GitHub Actions env 覆盖） */
 export const feishuConfig = {
-  /** 本应用 BFF 接口（开发/生产统一走 /api/feishu/send-message） */
+  /** 本地默认走 BFF；GitHub Pages 部署时需配置为真实 API 地址，Pages 不支持 /api 后端路由。 */
   apiUrl: import.meta.env.VITE_FEISHU_API_URL ?? '/api/feishu/send-message',
   targetType: (import.meta.env.VITE_FEISHU_TARGET_TYPE ?? 'person') as 'person' | 'group',
   targetName: import.meta.env.VITE_FEISHU_TARGET_NAME ?? '靳春野',
