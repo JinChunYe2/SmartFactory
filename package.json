@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
+    "deploy": "gh-pages -d dist",
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "tsx server/index.ts",

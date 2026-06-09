@@ -6,6 +6,7 @@ import {feishuApiPlugin} from './vite.feishu-plugin';
 
 export default defineConfig(() => {
   return {
+    base: process.env.GITHUB_ACTIONS ? '/SmartFactory/' : '/',
     plugins: [react(), tailwindcss(), feishuApiPlugin()],
     resolve: {
       alias: {
