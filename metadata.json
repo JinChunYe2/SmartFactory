@@ -1,0 +1,6 @@
+{
+  "name": "电线电缆工厂数字孪生平台",
+  "description": "基于数字孪生技术的电线电缆智能车间监控平台，涵盖设备运维、工序质量、能源耗用与安全防护，深度联动2D报表与3D虚拟工厂。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
